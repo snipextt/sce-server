@@ -1,11 +1,11 @@
-import express from "express";
+import { connect } from "./db";
+import { ExpressApp as app } from "./server";
 
-const app = express();
+async function boot() {
+  await connect();
+  app.listen(3000, () => {
+    console.log("Server started on port 3000");
+  });
+}
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.listen(3000, () => {
-  console.log("server is running on port 3000");
-});
+export { boot };
