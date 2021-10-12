@@ -1,10 +1,12 @@
 import express from "express";
-import { loginHandler } from "../controlers";
+import { AuthController, UserController } from "../controlers/";
 
 const ExpressApp = express();
 
 ExpressApp.use(express.json());
 
-ExpressApp.post("/login", loginHandler);
+ExpressApp.use("/auth", AuthController);
+
+ExpressApp.use("/user", UserController);
 
 export { ExpressApp };

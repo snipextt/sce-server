@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { User } from "../models";
 import { config } from "../_config";
+import { Router } from "express";
 
 const loginHandler = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -16,7 +17,7 @@ const loginHandler = async (req: Request, res: Response) => {
   }
   const payload = {
     user: {
-      id: user.id,
+      id: user._id,
     },
   };
   jwt.sign(
@@ -30,4 +31,8 @@ const loginHandler = async (req: Request, res: Response) => {
   );
 };
 
-export { loginHandler };
+const AuthController = Router();
+
+AuthController.post("/login", loginHandler);
+
+export { AuthController };
