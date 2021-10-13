@@ -13,6 +13,7 @@ interface IParsedTokens {
   [key: string]: IToken;
 }
 
+// TODO: shift this logic to a redis db
 const parsedTokens: IParsedTokens = {};
 
 export function inject(httpServer: Server) {
