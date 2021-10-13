@@ -18,7 +18,6 @@ const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
           error: err,
         });
       }
-      console.log(decoded);
       req.user! = (decoded as any).user;
       next();
     });
