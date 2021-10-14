@@ -1,7 +1,6 @@
 import { model, Schema } from "mongoose";
 
 interface IUser extends Document {
-  id: number;
   name: string;
   email: string;
   password: string;
@@ -10,11 +9,11 @@ interface IUser extends Document {
   gender: string;
   registrationNumber: string;
   notifications: null;
-  section: string;
+  section?: string;
+  subjects?: [string];
 }
 
 const UserModel = new Schema<IUser>({
-  id: Number,
   name: String,
   email: String,
   password: String,
@@ -22,9 +21,30 @@ const UserModel = new Schema<IUser>({
   phone: Number,
   gender: String,
   registrationNumber: String,
-  section: Schema.Types.ObjectId,
+  section: {
+    type: Schema.Types.ObjectId,
+    ref: "section",
+  },
+  subjects: [Schema.Types.ObjectId],
+});
+
+const sectionModel = new Schema({
+  code: String,
+  name: String,
+  startdate: Date,
+  enddate: Date,
+  subjects: [{ type: Schema.Types.ObjectId, ref: "subject" }],
+});
+
+const subjectModel = new Schema({
+  code: String,
+  name: String,
+  credits: Number,
+  teacher: { type: Schema.Types.ObjectId, ref: "user" },
 });
 
 const User = model<IUser>("student", UserModel);
+const Section = model("section", sectionModel);
+const Subject = model("subject", subjectModel);
 
-export { User, IUser };
+export { User, IUser, Section, Subject };

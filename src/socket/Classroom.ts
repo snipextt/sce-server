@@ -12,6 +12,7 @@ class Classroom {
   allowNonModeratorMedia: boolean;
   participantsList: IParticipantsList = {};
   constructor(id: string, name: string, moderator?: Socket) {
+    console.log("Creating new classroom");
     this.id = id;
     this.name = name;
     this.moderator = moderator;
@@ -28,13 +29,27 @@ class Classroom {
     this.allowNonModeratorMedia = allow;
   }
   addParticipant(participant: Socket) {
-    this.participantsList[participant.id] = participant.handshake.auth.user;
+    if (this.participantsList[participant.handshake.auth.user._id]) {
+      participant.emit("error", "You are already in this classroom");
+      return participant.disconnect();
+    }
+    participant.on("message", (message: string) => {
+      this.brodcastMessage(message, participant);
+    });
+
+    this.participantsList[participant.handshake.auth.user._id] =
+      participant.handshake.auth.user;
     participant.join(this.id);
   }
   removeParticipant(participant: Socket) {
-    delete this.participantsList[participant.id];
-    participant.leave(this.id);
-    participant.disconnect();
+    console.log("Removing participant");
+    delete this.participantsList[participant.handshake.auth.user._id];
+    try {
+      participant.leave(this.id);
+      participant.disconnect();
+    } catch (err) {
+      console.error(err);
+    }
   }
   getParticipants() {
     return this.participantsList;

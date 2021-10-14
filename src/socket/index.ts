@@ -3,10 +3,13 @@ import jwt from "jsonwebtoken";
 import { Server } from "http";
 import { IUser, User } from "../models";
 import { config } from "../_config";
+import Classroom from "./Classroom";
+import { v4 } from "uuid";
 
 interface IToken {
   user: IUser;
   socket: Socket;
+  classroomCode?: string;
 }
 
 interface IParsedTokens {
@@ -15,6 +18,7 @@ interface IParsedTokens {
 
 // TODO: shift this logic to a redis db
 const parsedTokens: IParsedTokens = {};
+const classroomLists: { [key: string]: Classroom } = {};
 
 export function inject(httpServer: Server) {
   const io = new ioServer(httpServer, {
@@ -37,9 +41,15 @@ export function inject(httpServer: Server) {
               console.log("here");
               return next(new Error("Authentication error"));
             }
-            const user = await User.findById(decoded.user.id).select(
-              "-password"
-            );
+            const user = await User.findById(decoded.user.id)
+              .populate("section")
+              .populate({
+                path: "section",
+                populate: {
+                  path: "subjects",
+                  model: "subject",
+                },
+              });
             if (!user) {
               return next(new Error("Authentication error"));
             }
@@ -57,8 +67,46 @@ export function inject(httpServer: Server) {
     }
   });
   io.of("/classroom").on("connection", (socket) => {
+    socket.on("join", (classroomCode: string) => {
+      const user: IUser = socket.handshake.auth.user;
+      if (!user) {
+        socket.emit("error", "Authentication error");
+        return socket.disconnect();
+      }
+      if (!classroomLists[`${classroomCode}-${(user.section as any).code}`]) {
+        if (user.type == "teacher") {
+        } else {
+          const match = ((user.section as any).subjects as Array<any>).find(
+            (subject: any) => subject.code == classroomCode
+          );
+          if (!match) {
+            socket.emit("error", "Authentication error");
+            return socket.disconnect();
+          }
+          const classRoom = new Classroom(v4({}), classroomCode);
+          parsedTokens[socket.handshake.auth.token].classroomCode =
+            classroomCode;
+          classRoom.addParticipant(socket);
+          classroomLists[`${classroomCode}-${(user.section as any).code}`] =
+            classRoom;
+        }
+      } else {
+      }
+    });
     socket.on("disconnect", () => {
-      console.log("disconnected");
+      const user: IUser = socket.handshake.auth.user;
+      if (!user) {
+        return;
+      }
+      const classroom =
+        classroomLists[
+          `${parsedTokens[socket.handshake.auth.token].classroomCode}-${
+            (user.section as any).code
+          }`
+        ];
+      if (classroom) {
+        classroom.removeParticipant(socket);
+      }
     });
   });
 }
