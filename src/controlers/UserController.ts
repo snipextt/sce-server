@@ -18,7 +18,14 @@ const profileHandler = async (req: Request, res: Response) => {
         path: "subjects",
         model: "subject",
       },
-    });
+    })
+    .populate({
+      path: "section.subjects",
+      populate: {
+        path: "teacher",
+        model: "user"
+      }
+    })
   res.json(user);
 };
 
