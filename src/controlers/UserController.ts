@@ -9,7 +9,16 @@ interface Request extends _Request {
 }
 
 const profileHandler = async (req: Request, res: Response) => {
-  const user = await User.findById(req.user!.id).select("-password");
+  const user = await User.findById(req.user!.id)
+    .select("-password")
+    .populate("section")
+    .populate({
+      path: "section",
+      populate: {
+        path: "subjects",
+        model: "subject",
+      },
+    });
   res.json(user);
 };
 
