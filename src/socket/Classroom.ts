@@ -40,6 +40,7 @@ class Classroom {
     this.participantsList[participant.handshake.auth.user._id] =
       participant.handshake.auth.user;
     participant.join(this.id);
+    participant.emit("joined", this.id);
   }
   removeParticipant(participant: Socket) {
     console.log("Removing participant");

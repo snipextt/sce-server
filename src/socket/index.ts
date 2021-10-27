@@ -38,7 +38,6 @@ export function inject(httpServer: Server) {
           config.get("jwtSecret")!,
           async (err: any, decoded: any) => {
             if (err) {
-              console.log("here");
               return next(new Error("Authentication error"));
             }
             const user = await User.findById(decoded.user.id)
