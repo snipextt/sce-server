@@ -31,6 +31,7 @@ class Classroom {
   addParticipant(participant: Socket) {
     if (this.participantsList[participant.handshake.auth.user._id]) {
       participant.emit("error", "You are already in this classroom");
+      console.log("here");
       return participant.disconnect();
     }
     participant.on("message", (message: string) => {

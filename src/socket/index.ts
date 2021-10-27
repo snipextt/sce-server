@@ -90,6 +90,9 @@ export function inject(httpServer: Server) {
             classRoom;
         }
       } else {
+        classroomLists[
+          `${classroomCode}-${(user.section as any).code}`
+        ].addParticipant(socket);
       }
     });
     socket.on("disconnect", () => {
